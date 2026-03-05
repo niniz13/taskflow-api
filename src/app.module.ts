@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -13,7 +14,22 @@ import { CommentsModule } from './comments/comments.module';
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
-      isGlobal: true
+      isGlobal: true,
+    }),
+
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST', 'localhost'),
+        port: config.get<number>('DB_PORT', 5432),
+        database: config.get<string>('DB_NAME', 'taskflow'),
+        username: config.get<string>('DB_USER', 'taskflow'),
+        password: config.get<string>('DB_PASSWORD', 'taskflow'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: config.get('NODE_ENV') !== 'production',
+        logging: config.get('NODE_ENV') === 'development',
+      }),
     }),
     UsersModule,
     TeamsModule,
