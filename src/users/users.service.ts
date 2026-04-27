@@ -13,6 +13,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UsersService {
+  static findOne(id: string) {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
@@ -68,5 +71,15 @@ export class UsersService {
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
     await this.usersRepository.remove(user);
+  }
+
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    // TODO: utiliser createQueryBuilder pour addSelect('user.passwordHash')
+    // car passwordHash a select: false dans l'entité
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 }
