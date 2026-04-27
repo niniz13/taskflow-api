@@ -1,7 +1,9 @@
 @baseUrl = http://localhost:3000/api
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMDQ4MWI1Yy02MmZiLTQzZmEtOTk1NC1jODdmM2UxNThhZGEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NzMwMTg3MSwiZXhwIjoxNzc3MzA1NDcxfQ.QEQw9923znO0CJSO8mt9ovW5sgt2_cLvCZwYhVFHcW0
 
-### Créer un utilisateur
+### Créer un utilisateur admin
 POST {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
@@ -11,8 +13,21 @@ Content-Type: application/json
   "role": "admin"
 }
 
+### Créer un utilisateur viewer
+POST {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json  
+
+{
+  "email": "charlie@taskflow.dev",
+  "name": "Charlie Viewer",
+  "password": "password123",
+  "role": "viewer"
+}
+
 ### Lister les utilisateurs (sans passwordHash)
 GET {{baseUrl}}/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMDQ4MWI1Yy02MmZiLTQzZmEtOTk1NC1jODdmM2UxNThhZGEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJtZW1iZXIiLCJpYXQiOjE3NzczMDE0ODQsImV4cCI6MTc3NzMwNTA4NH0.ZIYP5vh5-M1ACKs-ExCUyRqu8EONgtCJWxgkyTNKSho
 
 ### Récupérer par ID (remplacer l'UUID)
 GET {{baseUrl}}/users/REMPLACER_PAR_UUID
@@ -20,5 +35,13 @@ GET {{baseUrl}}/users/REMPLACER_PAR_UUID
 ### UUID malformé → 400
 GET {{baseUrl}}/users/pas-un-uuid
 
+### Modifier le profil de Bob (remplacer l'UUID et le token)
+PATCH {{baseUrl}}/users/20481b5c-62fb-43fa-9954-c87f3e158ada
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMDQ4MWI1Yy02MmZiLTQzZmEtOTk1NC1jODdmM2UxNThhZGEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJtZW1iZXIiLCJpYXQiOjE3NzczMDE0ODQsImV4cCI6MTc3NzMwNTA4NH0.ZIYP5vh5-M1ACKs-ExCUyRqu8EONgtCJWxgkyTNKSho
+Content-Type: application/json
+
+{ "role": "admin" }
+
 ### Supprimer
-DELETE {{baseUrl}}/users/REMPLACER_PAR_UUID
+DELETE {{baseUrl}}/users/20481b5c-62fb-43fa-9954-c87f3e158ada
+Authorization: Bearer {{adminToken}}

@@ -1,27 +1,38 @@
 @baseUrl = http://localhost:3000/api
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMDQ4MWI1Yy02MmZiLTQzZmEtOTk1NC1jODdmM2UxNThhZGEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJtZW1iZXIiLCJpYXQiOjE3NzczMDAyMjgsImV4cCI6MTc3NzMwMDI1Mn0.dRAhLMPr4Bo4kN9m1tbNFFoefi0mxCjILxsfskr6Udg
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMDQ4MWI1Yy02MmZiLTQzZmEtOTk1NC1jODdmM2UxNThhZGEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NzMwMTg3MSwiZXhwIjoxNzc3MzA1NDcxfQ.QEQw9923znO0CJSO8mt9ovW5sgt2_cLvCZwYhVFHcW0
+@viewerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MzExN2I3NS1jYmMwLTQzYTctOTNlMS1kYzgzMDAzYWE4ZjEiLCJlbWFpbCI6ImNoYXJsaWVAdGFza2Zsb3cuZGV2Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTc3NzMwMTkxNiwiZXhwIjoxNzc3MzA1NTE2fQ.YxIHR2FmoQiKbGNh_RKSp8eY7ehrsMiHtvQuXgS_DgE
+@bobToken = REMPLACER_TOKEN_BOB_MEMBER
 
-### Login ✅
+### Login Alice (admin)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
-{
-  "email": "alice@taskflow.dev",
-  "password": "MotDePasse123"
-}
+{ "email": "alice@taskflow.dev", "password": "MotDePasse123" }
 
-### Login mauvais mot de passe → 401
+### Login Charlie (viewer)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
-{
-  "email": "alice@taskflow.dev",
-  "password": "mauvais"
-}
+{ "email": "charlie@taskflow.dev", "password": "password123" }
 
-### Me — qui suis-je ?
-GET {{baseUrl}}/auth/me
-Authorization: Bearer {{token}}
+### ADMIN peut supprimer → 204
+DELETE {{baseUrl}}/users/USER_UUID
+Authorization: Bearer {{adminToken}}
 
-### Route protégée sans token → 401
-GET {{baseUrl}}/users
+### VIEWER ne peut pas supprimer → 403
+DELETE {{baseUrl}}/users/USER_UUID
+Authorization: Bearer {{viewerToken}}
+
+### MEMBER peut modifier son propre profil → 200
+PATCH {{baseUrl}}/users/BOB_UUID
+Authorization: Bearer {{bobToken}}
+Content-Type: application/json
+
+{ "name": "Bob Martin-Dupont" }
+
+### MEMBER ne peut PAS modifier le profil d'Alice → 403
+PATCH {{baseUrl}}/users/ALICE_UUID
+Authorization: Bearer {{bobToken}}
+Content-Type: application/json
+
+{ "name": "Alice Hacké" }

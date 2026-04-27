@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -54,7 +55,20 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<User> {
+  async update(
+    id: string,
+    dto: UpdateUserDto,
+    currentUser: { id: string; role: UserRole },
+  ): Promise<User> {
+    const isAdmin = currentUser.role === UserRole.ADMIN;
+    const isOwner = currentUser.id === id;
+
+    if (!isAdmin && !isOwner) {
+      throw new ForbiddenException(
+        'Only admin or the resource owner can update this user',
+      );
+    }
+
     const user = await this.findOne(id);
     if (dto.email && dto.email !== user.email) {
       const existingUser = await this.findByEmail(dto.email);
