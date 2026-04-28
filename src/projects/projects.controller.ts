@@ -12,35 +12,69 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { UserRole } from 'src/users/interface/user.interface';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('projects')
+@ApiBearerAuth('JWT-auth')
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiOperation({ summary: 'Créer un projet (ADMIN ou MEMBER)' })
+  @ApiCreatedResponse({ description: 'Projet créé avec succès' })
+  @ApiForbiddenResponse({ description: 'Réservé aux ADMIN et MEMBER' })
+  @ApiUnauthorizedResponse({ description: 'Non authentifié' })
   create(@Body() createProjectDto: CreateProjectDto) {
     return this.projectsService.create(createProjectDto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Lister tous les projets' })
+  @ApiOkResponse({ description: 'Liste des projets' })
+  @ApiUnauthorizedResponse({ description: 'Non authentifié' })
   findAll() {
     return this.projectsService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Récupérer un projet par ID' })
+  @ApiOkResponse({ description: 'Projet trouvé' })
+  @ApiNotFoundResponse({ description: 'Projet introuvable' })
+  @ApiUnauthorizedResponse({ description: 'Non authentifié' })
   findOne(@Param('id') id: string) {
     return this.projectsService.findOne(+id);
   }
 
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiOperation({ summary: 'Modifier un projet (ADMIN ou MEMBER)' })
+  @ApiOkResponse({ description: 'Projet mis à jour' })
+  @ApiNotFoundResponse({ description: 'Projet introuvable' })
+  @ApiForbiddenResponse({ description: 'Réservé aux ADMIN et MEMBER' })
+  @ApiUnauthorizedResponse({ description: 'Non authentifié' })
   update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
     return this.projectsService.update(+id, updateProjectDto);
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Supprimer un projet (ADMIN uniquement)' })
+  @ApiNoContentResponse({ description: 'Projet supprimé' })
+  @ApiNotFoundResponse({ description: 'Projet introuvable' })
+  @ApiForbiddenResponse({ description: 'Réservé aux ADMIN' })
+  @ApiUnauthorizedResponse({ description: 'Non authentifié' })
   remove(@Param('id') id: string) {
     return this.projectsService.remove(+id);
   }

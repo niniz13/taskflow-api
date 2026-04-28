@@ -13,7 +13,17 @@ import {
   Inject,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+  ApiUnauthorizedResponse,
+  ApiBearerAuth,
+  ApiBody,
+} from '@nestjs/swagger';
+import { LoginDto } from './dto/login.dto';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -22,18 +32,23 @@ export class AuthController {
   ) {}
 
   @Public()
-  @UseGuards(AuthGuard('local')) // Passport valide email/password
+  @UseGuards(AuthGuard('local'))
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Se connecter et obtenir un token JWT' })
+  @ApiBody({ type: LoginDto })
+  @ApiOkResponse({ description: 'Connexion réussie, retourne un access_token' })
+  @ApiUnauthorizedResponse({ description: 'Email ou mot de passe invalide' })
   login(@Request() req) {
-    // TODO: req.user est l'utilisateur validé par LocalStrategy
-    // Appeler authService.login(req.user)
     return this.authService.login(req.user);
   }
 
   @Get('me')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: "Récupérer le profil de l'utilisateur connecté" })
+  @ApiOkResponse({ description: "Profil de l'utilisateur courant" })
+  @ApiUnauthorizedResponse({ description: 'Token manquant ou invalide' })
   me(@CurrentUser() user: { id: string; email: string; role: string }) {
-    // TODO: retourner usersService.findOne(user.id)
     return this.usersService.findOne(user.id);
   }
 }
