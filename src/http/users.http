@@ -1,5 +1,6 @@
 @baseUrl = http://localhost:3000/api
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMDQ4MWI1Yy02MmZiLTQzZmEtOTk1NC1jODdmM2UxNThhZGEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NzMwMTg3MSwiZXhwIjoxNzc3MzA1NDcxfQ.QEQw9923znO0CJSO8mt9ovW5sgt2_cLvCZwYhVFHcW0
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMDQ4MWI1Yy02MmZiLTQzZmEtOTk1NC1jODdmM2UxNThhZGEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NzM1ODIxMiwiZXhwIjoxNzc3MzYxODEyfQ.OhPDQZ47X7TfsokpbGkFbYAMF0twvbFVe4Ev2KfeHJc
+@bobToken = REMPLACER_TOKEN_BOB_MEMBER
 
 ### Créer un utilisateur admin
 POST {{baseUrl}}/users
@@ -27,17 +28,18 @@ Content-Type: application/json
 
 ### Lister les utilisateurs (sans passwordHash)
 GET {{baseUrl}}/users
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMDQ4MWI1Yy02MmZiLTQzZmEtOTk1NC1jODdmM2UxNThhZGEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJtZW1iZXIiLCJpYXQiOjE3NzczMDE0ODQsImV4cCI6MTc3NzMwNTA4NH0.ZIYP5vh5-M1ACKs-ExCUyRqu8EONgtCJWxgkyTNKSho
+Authorization: Bearer {{adminToken}}
 
 ### Récupérer par ID (remplacer l'UUID)
-GET {{baseUrl}}/users/REMPLACER_PAR_UUID
+GET {{baseUrl}}/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{adminToken}}
 
 ### UUID malformé → 400
 GET {{baseUrl}}/users/pas-un-uuid
 
 ### Modifier le profil de Bob (remplacer l'UUID et le token)
 PATCH {{baseUrl}}/users/20481b5c-62fb-43fa-9954-c87f3e158ada
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMDQ4MWI1Yy02MmZiLTQzZmEtOTk1NC1jODdmM2UxNThhZGEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJtZW1iZXIiLCJpYXQiOjE3NzczMDE0ODQsImV4cCI6MTc3NzMwNTA4NH0.ZIYP5vh5-M1ACKs-ExCUyRqu8EONgtCJWxgkyTNKSho
+Authorization: Bearer {{bobToken}}
 Content-Type: application/json
 
 { "role": "admin" }

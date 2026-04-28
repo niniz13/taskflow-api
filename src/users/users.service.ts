@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -14,9 +15,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UsersService {
-  static findOne(id: string) {
-    throw new Error('Method not implemented.');
-  }
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
@@ -27,6 +27,7 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
+    this.logger.log(`Recherche de l'utilisateur ${id}`);
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -39,6 +40,7 @@ export class UsersService {
   }
 
   async create(dto: CreateUserDto): Promise<User> {
+    this.logger.log(`Création d'un utilisateur : ${dto.email}`);
     const existingUser = await this.findByEmail(dto.email);
     if (existingUser) {
       throw new ConflictException(
@@ -60,6 +62,7 @@ export class UsersService {
     dto: UpdateUserDto,
     currentUser: { id: string; role: UserRole },
   ): Promise<User> {
+    this.logger.log(`Mise à jour de l'utilisateur ${id} par ${currentUser.id}`);
     const isAdmin = currentUser.role === UserRole.ADMIN;
     const isOwner = currentUser.id === id;
 
@@ -83,6 +86,7 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<void> {
+    this.logger.log(`Suppression de l'utilisateur ${id}`);
     const user = await this.findOne(id);
     await this.usersRepository.remove(user);
   }
