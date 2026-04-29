@@ -1,0 +1,72 @@
+@baseUrl = http://localhost:3000/api
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYTc2MmU3Yy00N2FmLTRkZDEtYjNjZi05OWRlZDVlMjdiZDEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NzQ1NzAxNSwiZXhwIjoxNzc3NDYwNjE1fQ.-ziaNn6HmFTn2kgSXi_OtYPY2h__a45RZfoZiDzjfyU
+
+# IDs a remplacer apres creation
+@commentId = b93791db-9d1c-41b2-9ef5-0cf3f3c6cff4
+@taskId = fd2916ab-07fc-454b-8960-cae10d1bb9c1
+@authorId = da762e7c-47af-4dd1-b3cf-99ded5e27bd1
+
+### Creer un commentaire
+POST {{baseUrl}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Merci pour la mise a jour, je valide cette tache.",
+  "taskId": "{{taskId}}",
+  "authorId": "{{authorId}}"
+}
+
+### Creer un commentaire - retour a faire
+POST {{baseUrl}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Il faut retravailler le CSS. Voir les wireframes Figma.",
+  "taskId": "{{taskId}}",
+  "authorId": "{{authorId}}"
+}
+
+### Lister les commentaires
+GET {{baseUrl}}/comments
+Authorization: Bearer {{token}}
+
+### Recuperer un commentaire par ID
+GET {{baseUrl}}/comments/{{commentId}}
+Authorization: Bearer {{token}}
+
+### Modifier un commentaire
+PATCH {{baseUrl}}/comments/{{commentId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "J'ai pris en compte tes retours, merci!"
+}
+
+### Supprimer un commentaire
+DELETE {{baseUrl}}/comments/{{commentId}}
+Authorization: Bearer {{token}}
+
+### Test erreur: task invalide -> 404
+POST {{baseUrl}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Test",
+  "taskId": "00000000-0000-0000-0000-000000000000",
+  "authorId": "{{authorId}}"
+}
+
+### Test erreur: author invalide -> 404
+POST {{baseUrl}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Test",
+  "taskId": "{{taskId}}",
+  "authorId": "00000000-0000-0000-0000-000000000000"
+}
