@@ -9,6 +9,7 @@ import { TeamsModule } from './teams/teams.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { CommentsModule } from './comments/comments.module';
+import { HealthModule } from './health/health.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guard/jwt-auth.guard';
 import { AuthModule } from './auth/auth.module';
@@ -46,6 +47,7 @@ import { RolesGuard } from './auth/guard/roles.guard';
     TasksModule,
     CommentsModule,
     AuthModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [
