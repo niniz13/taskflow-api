@@ -1,0 +1,102 @@
+@baseUrl = http://localhost:3000/api
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYTc2MmU3Yy00N2FmLTRkZDEtYjNjZi05OWRlZDVlMjdiZDEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NzQ1NzAxNSwiZXhwIjoxNzc3NDYwNjE1fQ.-ziaNn6HmFTn2kgSXi_OtYPY2h__a45RZfoZiDzjfyU
+
+# IDs a remplacer apres creation
+@taskId = fd2916ab-07fc-454b-8960-cae10d1bb9c1
+@projectId = 97153fc0-04a4-4dbe-bee9-d0682c03ba0c
+@assigneeId = da762e7c-47af-4dd1-b3cf-99ded5e27bd1
+
+### Creer une tache
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Implémenter la page de login",
+  "description": "Créer le formulaire avec validation",
+  "status": "todo",
+  "priority": "high",
+  "projectId": "{{projectId}}",
+  "assigneeId": "{{assigneeId}}"
+}
+
+### Creer une tache sans assignee
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Faire un backup BDD",
+  "status": "todo",
+  "priority": "medium",
+  "projectId": "{{projectId}}"
+}
+
+### Lister les taches
+GET {{baseUrl}}/tasks
+Authorization: Bearer {{token}}
+
+### Recuperer une tache par ID
+GET {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{token}}
+
+### Modifier une tache - passer en IN_PROGRESS
+PATCH {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "in_progress"
+}
+
+### Modifier une tache - augmenter priorite
+PATCH {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "priority": "medium"
+}
+
+### Marquer comme DONE
+PATCH {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "done"
+}
+
+### Reassigner une tache
+PATCH {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "assigneeId": "{{assigneeId}}"
+}
+
+### Supprimer une tache
+DELETE {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{token}}
+
+### Test erreur: projectId invalide -> 404
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Test",
+  "projectId": "00000000-0000-0000-0000-000000000000"
+}
+
+### Test erreur: assignee invalide -> 404
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Test",
+  "projectId": "{{projectId}}",
+  "assigneeId": "00000000-0000-0000-0000-000000000000"
+}

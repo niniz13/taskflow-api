@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -48,8 +49,8 @@ export class TasksController {
   @ApiOkResponse({ description: 'Tâche trouvée' })
   @ApiNotFoundResponse({ description: 'Tâche introuvable' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  findOne(@Param('id') id: string) {
-    return this.tasksService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tasksService.findOne(id);
   }
 
   @Patch(':id')
@@ -57,8 +58,11 @@ export class TasksController {
   @ApiOkResponse({ description: 'Tâche mise à jour' })
   @ApiNotFoundResponse({ description: 'Tâche introuvable' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.tasksService.update(+id, updateTaskDto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+  ) {
+    return this.tasksService.update(id, updateTaskDto);
   }
 
   @Delete(':id')
@@ -66,7 +70,7 @@ export class TasksController {
   @ApiNoContentResponse({ description: 'Tâche supprimée' })
   @ApiNotFoundResponse({ description: 'Tâche introuvable' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  remove(@Param('id') id: string) {
-    return this.tasksService.remove(+id);
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tasksService.remove(id);
   }
 }
