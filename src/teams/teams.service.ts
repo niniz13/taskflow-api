@@ -36,6 +36,7 @@ export class TeamsService {
   async create(dto: CreateTeamDto): Promise<Team> {
     const team = this.teamsRepository.create({
       name: dto.name,
+      description: dto.description,
     });
     return this.teamsRepository.save(team);
   }

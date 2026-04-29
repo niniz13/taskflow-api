@@ -1,7 +1,9 @@
 @baseUrl = http://localhost:3000/api
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYTc2MmU3Yy00N2FmLTRkZDEtYjNjZi05OWRlZDVlMjdiZDEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NzQ1NTQyMCwiZXhwIjoxNzc3NDU5MDIwfQ.oXUEIK-53lc7JJ2Pp71zN6kYpw5EJYuPGnM9YhNoRoA
 
 ### Créer une équipe
 POST {{baseUrl}}/teams
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -11,9 +13,11 @@ Content-Type: application/json
 
 ### Lister les équipes (avec membres)
 GET {{baseUrl}}/teams
+Authorization: Bearer {{token}}
 
 ### Ajouter un membre (remplacer les IDs)
 POST {{baseUrl}}/teams/b5e33201-47d4-4293-827e-a2c66f731116/members
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -22,6 +26,8 @@ Content-Type: application/json
 
 ### Voir l'équipe avec ses membres et projets
 GET {{baseUrl}}/teams/b5e33201-47d4-4293-827e-a2c66f731116
+Authorization: Bearer {{token}}
 
 ### Retirer un membre
 DELETE {{baseUrl}}/teams/b5e33201-47d4-4293-827e-a2c66f731116/members/20481b5c-62fb-43fa-9954-c87f3e158ada
+Authorization: Bearer {{token}}

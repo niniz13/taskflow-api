@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { TeamsService } from './teams.service';
 import { CreateTeamDto } from './dto/create-team.dto';
@@ -48,7 +49,7 @@ export class TeamsController {
   @ApiOkResponse({ description: 'Équipe trouvée' })
   @ApiNotFoundResponse({ description: 'Équipe introuvable' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.teamsService.findOne(id);
   }
 
@@ -57,7 +58,10 @@ export class TeamsController {
   @ApiOkResponse({ description: 'Équipe mise à jour' })
   @ApiNotFoundResponse({ description: 'Équipe introuvable' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  update(@Param('id') id: string, @Body() updateTeamDto: UpdateTeamDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateTeamDto: UpdateTeamDto,
+  ) {
     return this.teamsService.update(id, updateTeamDto);
   }
 
@@ -66,7 +70,7 @@ export class TeamsController {
   @ApiNoContentResponse({ description: 'Équipe supprimée' })
   @ApiNotFoundResponse({ description: 'Équipe introuvable' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.teamsService.remove(id);
   }
 
@@ -75,7 +79,10 @@ export class TeamsController {
   @ApiOkResponse({ description: 'Membre ajouté' })
   @ApiNotFoundResponse({ description: 'Équipe ou utilisateur introuvable' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  addMember(@Param('id') teamId: string, @Body('userId') userId: string) {
+  addMember(
+    @Param('id', ParseUUIDPipe) teamId: string,
+    @Body('userId', ParseUUIDPipe) userId: string,
+  ) {
     return this.teamsService.addMember(teamId, userId);
   }
 
@@ -84,7 +91,10 @@ export class TeamsController {
   @ApiNoContentResponse({ description: 'Membre retiré' })
   @ApiNotFoundResponse({ description: 'Équipe ou utilisateur introuvable' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  removeMember(@Param('id') teamId: string, @Param('userId') userId: string) {
+  removeMember(
+    @Param('id', ParseUUIDPipe) teamId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ) {
     return this.teamsService.removeMember(teamId, userId);
   }
 }
