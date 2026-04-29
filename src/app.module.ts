@@ -16,11 +16,13 @@ import { RolesGuard } from './auth/guard/roles.guard';
 
 @Module({
   imports: [
+    // Chargement de la configuration depuis .env
     ConfigModule.forRoot({
       envFilePath: '.env',
-      isGlobal: true,
+      isGlobal: true,  // Rendre le ConfigService disponible globalement
     }),
 
+    // Configuration de TypeORM avec les paramètres de la base de données
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -36,6 +38,8 @@ import { RolesGuard } from './auth/guard/roles.guard';
         logging: config.get('NODE_ENV') === 'development',
       }),
     }),
+
+    // Import des modules de l'application
     UsersModule,
     TeamsModule,
     ProjectsModule,

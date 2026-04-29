@@ -1,5 +1,5 @@
 ### Racine
-GET http://localhost:3000
+GET http://localhost:3000/api
 
 ### Health check
-GET http://localhost:3000/health
+GET http://localhost:3000/api/health

@@ -14,9 +14,6 @@ export class AppController {
   @Get('health')
   @Public()
   getHealth(): { status: string; timestamp: string } {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    };
+    return this.appService.healthCheck();
   }
 }
