@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -53,8 +54,8 @@ export class ProjectsController {
   @ApiOkResponse({ description: 'Projet trouvé' })
   @ApiNotFoundResponse({ description: 'Projet introuvable' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.projectsService.findOne(id);
   }
 
   @Patch(':id')
@@ -64,8 +65,11 @@ export class ProjectsController {
   @ApiNotFoundResponse({ description: 'Projet introuvable' })
   @ApiForbiddenResponse({ description: 'Réservé aux ADMIN et MEMBER' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(+id, updateProjectDto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+  ) {
+    return this.projectsService.update(id, updateProjectDto);
   }
 
   @Delete(':id')
@@ -75,7 +79,7 @@ export class ProjectsController {
   @ApiNotFoundResponse({ description: 'Projet introuvable' })
   @ApiForbiddenResponse({ description: 'Réservé aux ADMIN' })
   @ApiUnauthorizedResponse({ description: 'Non authentifié' })
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(+id);
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.projectsService.remove(id);
   }
 }

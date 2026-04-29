@@ -1,0 +1,54 @@
+@baseUrl = http://localhost:3000/api
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYTc2MmU3Yy00N2FmLTRkZDEtYjNjZi05OWRlZDVlMjdiZDEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NzQ1NTQyMCwiZXhwIjoxNzc3NDU5MDIwfQ.oXUEIK-53lc7JJ2Pp71zN6kYpw5EJYuPGnM9YhNoRoA
+@memberToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYTc2MmU3Yy00N2FmLTRkZDEtYjNjZi05OWRlZDVlMjdiZDEiLCJlbWFpbCI6ImFsaWNlQHRhc2tmbG93LmRldiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NzQ1NTQyMCwiZXhwIjoxNzc3NDU5MDIwfQ.oXUEIK-53lc7JJ2Pp71zN6kYpw5EJYuPGnM9YhNoRoA
+
+# IDs a remplacer apres creation
+@projectId = 97153fc0-04a4-4dbe-bee9-d0682c03ba0c
+@teamId = a05872e8-835f-4b23-aa1d-8e9b41cf2688
+
+### Creer un projet (ADMIN ou MEMBER)
+POST {{baseUrl}}/projects
+Authorization: Bearer {{memberToken}}
+Content-Type: application/json
+
+{
+  "name": "Refonte dashboard",
+  "description": "Migration UI + perf",
+  "status": "draft",
+  "teamId": "{{teamId}}"
+}
+
+### Lister les projets
+GET {{baseUrl}}/projects
+Authorization: Bearer {{memberToken}}
+
+### Recuperer un projet par ID
+GET {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{memberToken}}
+
+### Modifier un projet (ADMIN ou MEMBER)
+PATCH {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{memberToken}}
+Content-Type: application/json
+
+{
+  "name": "Refonte dashboard v2",
+  "status": "active"
+}
+
+### Archiver un projet
+PATCH {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{memberToken}}
+Content-Type: application/json
+
+{
+  "status": "archived"
+}
+
+### Supprimer un projet (ADMIN uniquement)
+DELETE {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{adminToken}}
+
+### Test acces interdit: suppression par MEMBER -> 403
+DELETE {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{memberToken}}
