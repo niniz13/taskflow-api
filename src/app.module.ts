@@ -20,7 +20,7 @@ import { RolesGuard } from './auth/guard/roles.guard';
     // Chargement de la configuration depuis .env
     ConfigModule.forRoot({
       envFilePath: '.env',
-      isGlobal: true,  // Rendre le ConfigService disponible globalement
+      isGlobal: true, // Rendre le ConfigService disponible globalement
     }),
 
     // Configuration de TypeORM avec les paramètres de la base de données

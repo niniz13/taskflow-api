@@ -34,7 +34,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           : (res as { message?: string | string[] }).message ||
             'Une erreur est survenue';
     } else if (exception instanceof QueryFailedError) {
-      if ((exception as any).code === '23505') {
+      if (
+        (exception as QueryFailedError & { code?: string }).code === '23505'
+      ) {
         status = HttpStatus.CONFLICT;
         message = 'Conflit : une ressource avec les mêmes données existe déjà';
       }

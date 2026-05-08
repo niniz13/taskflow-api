@@ -9,24 +9,26 @@ describe('Users (e2e)', () => {
   let dataSource: DataSource;
   let adminToken: string;
   let memberToken: string;
+  let server: import('http').Server;
 
   beforeAll(async () => {
     ({ app, dataSource } = await createTestApp());
+    server = app.getHttpServer() as import('http').Server;
   });
 
   beforeEach(async () => {
     await cleanDatabase(dataSource);
     await seedTestUsers(dataSource);
 
-    const adminRes = await request(app.getHttpServer())
+    const adminRes = await request(server)
       .post('/api/auth/login')
       .send({ email: 'admin@test.com', password: 'password123' });
-    adminToken = adminRes.body.access_token;
+    adminToken = (adminRes.body as { access_token: string }).access_token;
 
-    const memberRes = await request(app.getHttpServer())
+    const memberRes = await request(server)
       .post('/api/auth/login')
       .send({ email: 'member@test.com', password: 'password123' });
-    memberToken = memberRes.body.access_token;
+    memberToken = (memberRes.body as { access_token: string }).access_token;
   });
 
   afterAll(async () => {
@@ -36,18 +38,18 @@ describe('Users (e2e)', () => {
 
   it('GET /api/users → 200 + liste non vide', async () => {
     // TODO: GET avec adminToken → 200, body est un tableau non vide
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .get('/api/users')
       .set('Authorization', `Bearer ${adminToken}`);
 
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThan(0);
+    expect((res.body as unknown[]).length).toBeGreaterThan(0);
   });
 
   it('GET /api/users → 401 sans token', async () => {
     // TODO
-    const res = await request(app.getHttpServer()).get('/api/users');
+    const res = await request(server).get('/api/users');
 
     expect(res.status).toBe(401);
   });
@@ -56,7 +58,7 @@ describe('Users (e2e)', () => {
     // TODO:
     // - POST avec adminToken, body { email: 'new@test.com', name: 'Nouveau', password: 'Password123' }
     // - Vérifier 201, que res.body.id existe, que passwordHash n'est PAS dans la réponse
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .post('/api/users')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
@@ -66,12 +68,12 @@ describe('Users (e2e)', () => {
       });
 
     expect(res.status).toBe(201);
-    expect(res.body.id).toBeDefined();
+    expect((res.body as { id: string }).id).toBeDefined();
   });
 
   it('POST /api/users → 400 email invalide', async () => {
     // TODO: body avec email malformé → expect 400
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .post('/api/users')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ email: 'invalid-email', name: 'Test', password: 'Password123' });
@@ -81,7 +83,7 @@ describe('Users (e2e)', () => {
 
   it('POST /api/users → 403 par member (non admin)', async () => {
     // TODO: POST avec memberToken → expect 403
-    const res = await request(app.getHttpServer())
+    const res = await request(server)
       .post('/api/users')
       .set('Authorization', `Bearer ${memberToken}`)
       .send({
@@ -99,7 +101,7 @@ describe('Users (e2e)', () => {
     // 2. GET /api/users/:id → 200
     // 3. DELETE /api/users/:id → 204
     // 4. GET /api/users/:id → 404
-    const createRes = await request(app.getHttpServer())
+    const createRes = await request(server)
       .post('/api/users')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
@@ -109,22 +111,22 @@ describe('Users (e2e)', () => {
       });
 
     expect(createRes.status).toBe(201);
-    const userId = createRes.body.id;
+    const userId = (createRes.body as { id: string }).id;
 
-    const getRes = await request(app.getHttpServer())
+    const getRes = await request(server)
       .get(`/api/users/${userId}`)
       .set('Authorization', `Bearer ${adminToken}`);
 
     expect(getRes.status).toBe(200);
-    expect(getRes.body.id).toBe(userId);
+    expect((getRes.body as { id: string }).id).toBe(userId);
 
-    const deleteRes = await request(app.getHttpServer())
+    const deleteRes = await request(server)
       .delete(`/api/users/${userId}`)
       .set('Authorization', `Bearer ${adminToken}`);
 
     expect(deleteRes.status).toBe(204);
 
-    const notFoundRes = await request(app.getHttpServer())
+    const notFoundRes = await request(server)
       .get(`/api/users/${userId}`)
       .set('Authorization', `Bearer ${adminToken}`);
 

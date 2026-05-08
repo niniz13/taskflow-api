@@ -39,7 +39,12 @@ export class AuthController {
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({ description: 'Connexion réussie, retourne un access_token' })
   @ApiUnauthorizedResponse({ description: 'Email ou mot de passe invalide' })
-  login(@Request() req) {
+  login(
+    @Request()
+    req: {
+      user: { id: string; email: string; name: string; role: string };
+    },
+  ) {
     return this.authService.login(req.user);
   }
 

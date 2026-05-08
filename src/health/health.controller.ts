@@ -15,6 +15,6 @@ export class HealthController {
   @HealthCheck()
   check() {
     // TODO: return this.health.check([() => this.db.pingCheck('database')])
-        return this.health.check([() => this.db.pingCheck('database')]);
+    return this.health.check([() => this.db.pingCheck('database')]);
   }
 }

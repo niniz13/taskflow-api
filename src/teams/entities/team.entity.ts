@@ -22,7 +22,7 @@ export class Team {
   @Column({ nullable: true })
   description: string;
 
-  @ManyToMany(() => User, (user) => user.teams)
+  @ManyToMany(() => User, (user) => user.teams as Team[])
   @JoinTable({
     name: 'team_members',
     joinColumn: {

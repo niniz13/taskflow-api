@@ -8,9 +8,11 @@ describe('Auth (e2e)', () => {
   let app: INestApplication;
   let dataSource: DataSource;
   let accessToken: string;
+  let server: import('http').Server;
 
   beforeAll(async () => {
     ({ app, dataSource } = await createTestApp());
+    server = app.getHttpServer() as import('http').Server;
   });
 
   beforeEach(async () => {
@@ -30,19 +32,23 @@ describe('Auth (e2e)', () => {
       // - Vérifier status 200
       // - Vérifier que res.body contient 'access_token' (string)
       // - Vérifier que res.body.user.email === 'admin@test.com'
-      const res = await request(app.getHttpServer())
+      const res = await request(server)
         .post('/api/auth/login')
         .send({ email: 'admin@test.com', password: 'password123' });
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('access_token');
-      expect(typeof res.body.access_token).toBe('string');
-      expect(res.body.user.email).toBe('admin@test.com');
+      const loginBody = res.body as {
+        access_token: string;
+        user: { email: string };
+      };
+      expect(typeof loginBody.access_token).toBe('string');
+      expect(loginBody.user.email).toBe('admin@test.com');
     });
 
     it('401 avec mauvais mot de passe', async () => {
       // TODO: même email, password: 'wrong' → expect 401
-      const res = await request(app.getHttpServer())
+      const res = await request(server)
         .post('/api/auth/login')
         .send({ email: 'admin@test.com', password: 'wrong' });
 
@@ -51,7 +57,7 @@ describe('Auth (e2e)', () => {
 
     it('401 avec email inconnu', async () => {
       // TODO: email: 'nobody@test.com' → expect 401
-      const res = await request(app.getHttpServer())
+      const res = await request(server)
         .post('/api/auth/login')
         .send({ email: 'nobody@test.com', password: 'password123' });
 
@@ -61,10 +67,10 @@ describe('Auth (e2e)', () => {
 
   describe('GET /api/auth/me', () => {
     beforeEach(async () => {
-      const res = await request(app.getHttpServer())
+      const res = await request(server)
         .post('/api/auth/login')
         .send({ email: 'admin@test.com', password: 'password123' });
-      accessToken = res.body.access_token;
+      accessToken = (res.body as { access_token: string }).access_token;
     });
 
     it('200 + profil connecté', async () => {
@@ -72,17 +78,17 @@ describe('Auth (e2e)', () => {
       // - GET /api/auth/me avec Authorization: Bearer {{accessToken}}
       // - Vérifier status 200
       // - Vérifier que res.body.email === 'admin@test.com'
-      const res = await request(app.getHttpServer())
+      const res = await request(server)
         .get('/api/auth/me')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.email).toBe('admin@test.com');
+      expect((res.body as { email: string }).email).toBe('admin@test.com');
     });
 
     it('401 sans token', async () => {
       // TODO: GET /api/auth/me sans header → expect 401
-      const res = await request(app.getHttpServer()).get('/api/auth/me');
+      const res = await request(server).get('/api/auth/me');
 
       expect(res.status).toBe(401);
     });

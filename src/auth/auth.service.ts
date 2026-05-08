@@ -18,13 +18,14 @@ export class AuthService {
     // 4. Sinon → retourner null
     const user = await this.usersService.findByEmailWithPassword(email);
     if (user && (await bcrypt.compare(password, user.passwordHash))) {
-      const { passwordHash, ...result } = user;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { passwordHash: _, ...result } = user;
       return result;
     }
     return null;
   }
 
-  async login(user: any) {
+  login(user: { id: string; email: string; name: string; role: string }) {
     // TODO:
     // Créer le payload JWT { sub: user.id, email, role }
     // Retourner { access_token: jwtService.sign(payload), user: { id, email, name, role } }

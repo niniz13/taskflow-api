@@ -14,7 +14,7 @@ const createMockContext = (role: string): ExecutionContext =>
         user: { id: 'uuid', email: 'test@test.com', role },
       }),
     }),
-  }) as any;
+  }) as unknown as ExecutionContext;
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;

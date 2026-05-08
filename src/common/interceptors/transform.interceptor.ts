@@ -9,26 +9,25 @@ import { map } from 'rxjs/operators';
 
 @Injectable()
 export class TransformInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
-      map((data) => {
+      map((data: unknown) => {
         // Supprimer passwordHash des entities User
-        const cleanData = this.removePasswordHash(data);
-        return cleanData;
+        return this.removePasswordHash(data);
       }),
     );
   }
 
-  private removePasswordHash(data: any): any {
+  private removePasswordHash(data: unknown): unknown {
     if (!data) return data;
 
     if (Array.isArray(data)) {
-      return data.map((item) => this.removePasswordHash(item));
+      return data.map((item: unknown) => this.removePasswordHash(item));
     }
 
     if (typeof data === 'object') {
-      const cleaned = { ...data };
-      delete cleaned.passwordHash;
+      const cleaned = { ...(data as Record<string, unknown>) };
+      delete cleaned['passwordHash'];
       return cleaned;
     }
 
