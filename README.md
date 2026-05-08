@@ -1,98 +1,119 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# TaskFlow API — Rapport Technique
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> API REST de gestion de projets et tâches développée avec **NestJS**, **TypeORM** et **PostgreSQL**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 1. Choix techniques
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Architecture & framework
 
-## Project setup
+Le projet repose sur **NestJS**, choisi pour sa structure modulaire inspirée d'Angular (modules, controllers, services, guards, interceptors). Cette organisation force une séparation claire des responsabilités et facilite la montée en charge du projet. Chaque domaine métier (`users`, `teams`, `projects`, `tasks`, `comments`) est encapsulé dans son propre module NestJS, avec ses entités, DTOs, services et contrôleurs.
 
-```bash
-$ npm install
+### Relations entre entités
+
+Le modèle de données s'articule autour de cinq entités TypeORM :
+
+```
+User ←─ ManyToMany ─→ Team
+Team ──── OneToMany ──→ Project
+Project ── OneToMany ──→ Task
+Task ───── OneToMany ──→ Comment
+User ──── OneToMany ──→ Task (assignee)
+User ──── OneToMany ──→ Comment (auteur)
 ```
 
-## Compile and run the project
+Les suppressions en cascade ont été configurées avec soin : supprimer un `Project` supprime ses `Task`, supprimer une `Task` supprime ses `Comment`. En revanche, supprimer un `User` met l'`assignee` d'une tâche à `NULL` (comportement `SET NULL`) afin de préserver l'historique des tâches sans bloquer l'opération. La table de jointure `team_members` gère la relation `ManyToMany` entre utilisateurs et équipes.
+
+Les identifiants sont tous des **UUID v4** pour éviter les id séquentiels prévisibles et faciliter la distribution future.
+
+### Stratégie d'authentification
+
+L'authentification combine **Passport.js** avec deux stratégies :
+
+- **LocalStrategy** : valide les credentials `email + mot de passe` via bcrypt sur l'endpoint `POST /auth/login`.
+- **JwtStrategy** : vérifie le token Bearer sur toutes les routes protégées. Le payload JWT contient `{ sub, email, role }`, ce qui évite un aller-retour en base à chaque requête pour récupérer le rôle.
+
+Un **`JwtAuthGuard` global** est appliqué sur l'ensemble de l'application. Les routes publiques (comme `/auth/login` et `/health`) utilisent le décorateur `@Public()` pour lever explicitement la protection, suivant le principe du *secure by default*.
+
+Le contrôle d'accès par rôle est assuré par un **`RolesGuard`** global et le décorateur `@Roles()`. Trois rôles sont définis : `ADMIN`, `MEMBER`, `VIEWER`.
+
+Les mots de passe sont hashés avec **bcrypt** et le champ `passwordHash` est marqué `select: false` en TypeORM, ce qui l'exclut systématiquement des requêtes. Un `TransformInterceptor` global assure une seconde ligne de défense en supprimant ce champ de toutes les réponses sortantes.
+
+### Organisation des tests
+
+Les tests sont répartis en deux catégories :
+
+**Tests unitaires** (`*.spec.ts`) : ils testent les services de façon isolée grâce à un helper `createMockRepository()` qui fournit un mock complet du `Repository` TypeORM. Cela permet de tester la logique métier sans base de données.
+
+**Tests End-to-End** (`test/*.e2e-spec.ts`) : ils démarrent une vraie instance NestJS contre une base PostgreSQL de test. Un helper `createTestApp()` initialise l'application avec tous les pipes, filtres et interceptors globaux. La base est synchronisée via `dataSource.synchronize(true)` au démarrage et nettoyée entre les tests avec `cleanDatabase()` (truncation dans le bon ordre pour respecter les contraintes de clés étrangères).
+
+Les tests E2E couvrent l'authentification (login valide/invalide, endpoint `/me`), la gestion des utilisateurs (CRUD, contrôle d'accès par rôle, validation des DTOs) et le point de santé de l'application.
+
+### Autres choix notables
+
+- **Validation** : `ValidationPipe` global avec `whitelist: true` et `forbidNonWhitelisted: true` pour rejeter tout champ inconnu en entrée.
+- **Gestion des erreurs** : un `GlobalExceptionFilter` centralise la mise en forme des erreurs HTTP et convertit les violations de contrainte unique PostgreSQL (code `23505`) en réponses HTTP 409 Conflict.
+- **Logging** : un `LoggingInterceptor` trace chaque requête avec méthode, URL, statut et durée.
+- **Documentation** : Swagger est auto-généré en développement sur `/docs`.
+- **Sécurité HTTP** : Helmet est activé pour durcir les headers, CORS est restreint à l'origine frontend attendue.
+- **Déploiement** : build Docker multi-stage (builder → runner) avec image Alpine, utilisateur non-root et healthcheck HTTP intégré.
+
+---
+
+## 2. Difficultés rencontrées et solutions
+
+### Gestion de `passwordHash` dans les réponses
+
+La première difficulté a été de s'assurer que le hash du mot de passe n'apparaisse jamais dans les réponses API. Marquer la colonne `select: false` dans TypeORM résout le problème pour les requêtes standards, mais des requêtes internes (comme `validateUser` dans AuthService) doivent récupérer ce champ explicitement avec `addSelect`. Le `TransformInterceptor` a été ajouté comme filet de sécurité supplémentaire pour traiter les cas où l'entité est retournée directement.
+
+### Ordre de suppression pour les tests
+
+Le nettoyage de la base entre les tests E2E posait des erreurs de contrainte de clé étrangère. La solution a été de tronquer les tables dans l'ordre inverse des dépendances (`comments → tasks → projects → team_members → teams → users`) plutôt que de tronquer toutes les tables en parallèle.
+
+### Configuration de l'environnement de test
+
+Faire cohabiter l'environnement de test E2E avec la configuration de l'application (variables d'environnement, connexion DB) a nécessité de bien isoler la `DataSource` de test et d'utiliser un fichier `.env.test` dédié pour pointer vers une base distincte.
+
+---
+
+## 3. Améliorations envisagées
+
+**Refresh tokens** : l'implémentation actuelle ne prévoit pas de refresh token. À l'expiration du JWT (24h par défaut), l'utilisateur doit se reconnecter. Un mécanisme de rotation de refresh tokens stockés en base améliorerait significativement l'expérience.
+
+**Couverture de tests** : les tests unitaires sont limités au service `UsersService`. Idéalement, chaque service (`TasksService`, `ProjectsService`, `CommentsService`, `AuthService`) aurait sa propre suite de tests unitaires, et les tests E2E couvriraient l'ensemble des routes CRUD.
+
+**Pagination et filtrage** : les endpoints qui retournent des listes (`GET /tasks`, `GET /projects`) ne gèrent pas encore la pagination. Sur une vraie base de données, cela deviendrait rapidement un problème de performance.
+
+**Rate limiting** : aucun mécanisme de limitation de débit n'est en place sur les endpoints d'authentification, ce qui les expose à des attaques par force brute. Le module `@nestjs/throttler` permettrait de l'ajouter facilement.
+
+---
+
+## Lancer le projet
 
 ```bash
-# development
-$ npm run start
+# Démarrer la base de données
+docker compose up -d
 
-# watch mode
-$ npm run start:dev
+# Installer les dépendances
+npm install
 
-# production mode
-$ npm run start:prod
+# Seeder les données initiales
+npm run seed
+
+# Démarrer en mode dev
+npm run start:dev
 ```
-
-## Run tests
 
 ```bash
-# unit tests
-$ npm run test
+# Tests unitaires
+npm run test
 
-# e2e tests
-$ npm run test:e2e
+# Tests E2E
+npm run test:e2e
 
-# test coverage
-$ npm run test:cov
+# Couverture
+npm run test:cov
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+La documentation Swagger est accessible sur `http://localhost:3000/docs` en mode développement.
