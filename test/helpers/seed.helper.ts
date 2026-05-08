@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 
 export async function seedTestUsers(dataSource: DataSource) {
   const repo = dataSource.getRepository(User);
-  const hash = await bcrypt.hash('password123', 10);
+  const hash = await bcrypt.hash('password123', 1);
 
   const admin = await repo.save(
     repo.create({

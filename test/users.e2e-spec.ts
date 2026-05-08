@@ -14,9 +14,6 @@ describe('Users (e2e)', () => {
   beforeAll(async () => {
     ({ app, dataSource } = await createTestApp());
     server = app.getHttpServer() as import('http').Server;
-  });
-
-  beforeEach(async () => {
     await cleanDatabase(dataSource);
     await seedTestUsers(dataSource);
 
@@ -29,6 +26,11 @@ describe('Users (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: 'member@test.com', password: 'password123' });
     memberToken = (memberRes.body as { access_token: string }).access_token;
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase(dataSource);
+    await seedTestUsers(dataSource);
   });
 
   afterAll(async () => {
